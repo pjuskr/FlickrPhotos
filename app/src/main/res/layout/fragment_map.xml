@@ -4,9 +4,13 @@
     android:background="@android:color/background_light">
 
     <TextView
+        android:id="@+id/map_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="map fragment"
         android:textSize="30sp"
         android:layout_centerInParent="true"/>
+
+
+
 </RelativeLayout>
