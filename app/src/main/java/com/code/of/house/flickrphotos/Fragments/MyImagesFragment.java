@@ -129,7 +129,7 @@ public class MyImagesFragment extends Fragment {
 
                     FlickrImage myFlickrImage = ParseJSON(sb.toString());
                     final Bitmap myFlickrImageBM = myFlickrImage.getBitmap();
-                    
+
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {

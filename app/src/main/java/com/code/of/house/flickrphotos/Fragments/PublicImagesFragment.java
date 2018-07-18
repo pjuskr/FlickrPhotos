@@ -6,15 +6,16 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.code.of.house.flickrphotos.FlickrImage;
+import com.code.of.house.flickrphotos.MosaicAapter;
 import com.code.of.house.flickrphotos.R;
 
 import org.json.JSONArray;
@@ -29,12 +30,16 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PublicImagesFragment extends Fragment {
 
     public static final String API_KEY = "1566308a6e268a2e969dc8f09dbd11c5";
     private static final String SECRET = "f6b3331eeab4a159";
-
+    private StaggeredGridLayoutManager _sGridLayoutManager;
+    List<FlickrImage> fList = new ArrayList<>();
+    MosaicAapter mAdapter;
     /*
      * FlickrQuery = FlickrQuery_url
      * + FlickrQuery_per_page
@@ -45,7 +50,7 @@ public class PublicImagesFragment extends Fragment {
      */
 
     String FlickrQuery_url = "https://api.flickr.com/services/rest/?method=flickr.photos.search";
-    String FlickrQuery_per_page = "&per_page=1";
+    String FlickrQuery_per_page = "&per_page=100";
     String FlickrQuery_nojsoncallback = "&nojsoncallback=1";
     String FlickrQuery_format = "&format=json";
     String FlickrQuery_tag = "&tags=";
@@ -57,10 +62,9 @@ public class PublicImagesFragment extends Fragment {
 
     EditText searchText;
     Button searchButton;
-    TextView textQueryResult;
-    ImageView imageFlickrPhoto;
 
     Bitmap bmFlickr;
+    FlickrImage[] myFlickrImage;
 
     @Nullable
     @Override
@@ -69,7 +73,15 @@ public class PublicImagesFragment extends Fragment {
 
         searchText = view.findViewById(R.id.edit_text);
         searchButton = view.findViewById(R.id.button);
-        imageFlickrPhoto = view.findViewById(R.id.image_view);
+
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.public_recyclerview);
+        recyclerView.setHasFixedSize(true);
+
+        _sGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(_sGridLayoutManager);
+
+        mAdapter = new MosaicAapter(getContext(), fList);
+        recyclerView.setAdapter(mAdapter);
 
         searchButton.setOnClickListener(searchButtonOnClickListener);
 
@@ -128,19 +140,22 @@ public class PublicImagesFragment extends Fragment {
                         sb.append(inputline);
                     }
 
-                    FlickrImage myFlickrImage = ParseJSON(sb.toString());
-                    final Bitmap myFlickrImageBM = myFlickrImage.getBitmap();
+                    final FlickrImage myFlickrImage[] = ParseJSON(sb.toString());
 
+                    for (final FlickrImage f: myFlickrImage) {
+                        final Bitmap myFlickrImageBM = f.getBitmap();
 
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
 
-                            if(myFlickrImageBM != null){
-                                imageFlickrPhoto.setImageBitmap(myFlickrImageBM);
+                                if(myFlickrImageBM != null){
+                                    fList.add(f);
+                                    mAdapter.notifyDataSetChanged();
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
 
                 }catch (MalformedURLException e){
 
@@ -155,7 +170,9 @@ public class PublicImagesFragment extends Fragment {
         return qResult;
     }
 
-    private FlickrImage ParseJSON(String json){
+    private FlickrImage[] ParseJSON(String json){
+
+        FlickrImage[] flickrImage = null;
 
         bmFlickr = null;
 
@@ -166,8 +183,6 @@ public class PublicImagesFragment extends Fragment {
         String flickrFarm;
         String flickrTitle;
 
-        FlickrImage flickrImage = null;
-
         try {
 
             JSONObject JsonObject = new JSONObject(json);
@@ -175,17 +190,21 @@ public class PublicImagesFragment extends Fragment {
             JSONArray JsonArray_photo = Json_photos.getJSONArray("photo");
 
             //We have only one photo in this exercise
-            JSONObject FlickrPhoto = JsonArray_photo.getJSONObject(0);
+            //JSONObject FlickrPhoto = JsonArray_photo.getJSONObject(0);
 
-            flickrId = FlickrPhoto.getString("id");
-            flickrOwner = FlickrPhoto.getString("owner");
-            flickrSecret = FlickrPhoto.getString("secret");
-            flickrServer = FlickrPhoto.getString("server");
-            flickrFarm = FlickrPhoto.getString("farm");
-            flickrTitle = FlickrPhoto.getString("title");
 
-            flickrImage = new FlickrImage(flickrId, flickrOwner, flickrSecret,
-                    flickrServer, flickrFarm, flickrTitle);
+            flickrImage = new FlickrImage[JsonArray_photo.length()];
+            for (int i = 0; i < JsonArray_photo.length(); i++){
+                JSONObject FlickrPhoto = JsonArray_photo.getJSONObject(i);
+                flickrId = FlickrPhoto.getString("id");
+                flickrOwner = FlickrPhoto.getString("owner");
+                flickrSecret = FlickrPhoto.getString("secret");
+                flickrServer = FlickrPhoto.getString("server");
+                flickrFarm = FlickrPhoto.getString("farm");
+                flickrTitle = FlickrPhoto.getString("title");
+                flickrImage[i] = new FlickrImage(flickrId, flickrOwner, flickrSecret,
+                        flickrServer, flickrFarm, flickrTitle);
+            }
 
         } catch (JSONException e) {
 
@@ -194,9 +213,7 @@ public class PublicImagesFragment extends Fragment {
             e.printStackTrace();
 
         }
-
         return flickrImage;
-
     }
 
     private Bitmap LoadPhotoFromFlickr(

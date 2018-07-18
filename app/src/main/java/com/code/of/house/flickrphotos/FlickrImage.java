@@ -21,14 +21,18 @@ public class FlickrImage {
 
     public FlickrImage(String _Id, String _Owner, String _Secret,
                 String _Server, String _Farm, String _Title){
-        Id = _Id;
-        Owner = _Owner;
-        Secret = _Secret;
-        Server = _Server;
-        Farm = _Farm;
-        Title = _Title;
+        this.Id = _Id;
+        this.Owner = _Owner;
+        this.Secret = _Secret;
+        this.Server = _Server;
+        this.Farm = _Farm;
+        this.Title = _Title;
 
-        FlickrBitmap = preloadBitmap();
+        this.FlickrBitmap = preloadBitmap();
+    }
+
+    public Bitmap getBitmap(){
+        return this.FlickrBitmap;
     }
 
     private Bitmap preloadBitmap(){
@@ -59,9 +63,5 @@ public class FlickrImage {
         }
 
         return bm;
-    }
-
-    public Bitmap getBitmap(){
-        return FlickrBitmap;
     }
 }
