@@ -30,6 +30,7 @@ public class MosaicAapter extends RecyclerView.Adapter<SampleViewHolders> {
     @Override
     public void onBindViewHolder(SampleViewHolders holder, int position)
     {
+        holder.flickrImage = itemList.get(position);
         holder.Image.setImageBitmap(itemList.get(position).getBitmap());
     }
 

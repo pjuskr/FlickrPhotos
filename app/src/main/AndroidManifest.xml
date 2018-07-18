@@ -24,20 +24,23 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="flickrphotos"/>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="flickrphotos" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".Activities.LoginActivity"
-            android:label="@string/title_activity_login">
-
-        </activity>
+            android:name=".Activities.FullsceenImageActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_fullsceen_image"
+            android:theme="@style/FullscreenTheme"></activity>
     </application>
 
 </manifest>

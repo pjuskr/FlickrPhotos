@@ -14,24 +14,28 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.code.of.house.flickrphotos.Activities.MainActivity;
 import com.code.of.house.flickrphotos.FlickrImage;
 import com.code.of.house.flickrphotos.MosaicAapter;
 import com.code.of.house.flickrphotos.R;
+import com.github.scribejava.core.model.OAuthRequest;
+import com.github.scribejava.core.model.Response;
+import com.github.scribejava.core.model.Verb;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import static com.code.of.house.flickrphotos.Activities.MainActivity.accessToken;
 
 public class PublicImagesFragment extends Fragment {
 
@@ -51,7 +55,7 @@ public class PublicImagesFragment extends Fragment {
      */
 
     String FlickrQuery_url = "https://api.flickr.com/services/rest/?method=flickr.photos.search";
-    String FlickrQuery_per_page = "&per_page=100";
+    String FlickrQuery_per_page = "&per_page=20";
     String FlickrQuery_nojsoncallback = "&nojsoncallback=1";
     String FlickrQuery_format = "&format=json";
     String FlickrQuery_tag = "&tags=";
@@ -81,7 +85,6 @@ public class PublicImagesFragment extends Fragment {
 
         mAdapter = new MosaicAapter(getContext(), fList);
         recyclerView.setAdapter(mAdapter);
-
         searchButton.setOnClickListener(searchButtonOnClickListener);
 
         return view;
@@ -103,21 +106,18 @@ public class PublicImagesFragment extends Fragment {
         public void onClick(View arg0) {
             // TODO Auto-generated method stub
             String searchQ = searchText.getText().toString().replace(' ', '_');
-            String searchResult = QueryFlickr(searchQ);
+            QueryFlickr(searchQ);
             fList.clear();
         }};
 
-    private String QueryFlickr(String q){
-
-        String qResult = null;
+    private void QueryFlickr(String q){
 
         final String qString =
                 FlickrQuery_url
                         + FlickrQuery_per_page
                         + FlickrQuery_nojsoncallback
                         + FlickrQuery_format
-                        + FlickrQuery_tag + q
-                        + FlickrQuery_key + FlickrApiKey;
+                        + FlickrQuery_tag + q;
 
         final URL[] flickrQueryURL = {null};
 
@@ -125,23 +125,15 @@ public class PublicImagesFragment extends Fragment {
             @Override
             public void run() {
                 try{
-                    flickrQueryURL[0] = new URL(qString);
 
-                    HttpURLConnection httpConnection = (HttpURLConnection) flickrQueryURL[0].openConnection();
-                    httpConnection.setDoInput(true);
-                    httpConnection.connect();
-                    InputStream inputStream = httpConnection.getInputStream();
-                    BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(bufferedInputStream));
-                    String inputline = "";
-                    StringBuilder sb = new StringBuilder();
+                    final OAuthRequest request = new OAuthRequest(Verb.GET, qString);
+                    MainActivity.service.signRequest(accessToken, request);
+                    final Response response = MainActivity.service.execute(request);
 
-                    while ((inputline = bufferedReader.readLine()) != null){
-                        sb.append(inputline);
-                    }
-                    bufferedInputStream.close();
+                    String body = response.getBody();
 
-                    final FlickrImage myFlickrImage[] = ParseJSON(sb.toString());
+                    final FlickrImage myFlickrImage[] = ParseJSON(body);
+
 
                     for (final FlickrImage f: myFlickrImage) {
                         final Bitmap myFlickrImageBM = f.getBitmap();
@@ -162,13 +154,14 @@ public class PublicImagesFragment extends Fragment {
 
                 }catch (IOException e){
 
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
                 }
             }
         });
         thread.start();
-
-
-        return qResult;
     }
 
     private FlickrImage[] ParseJSON(String json){

@@ -38,9 +38,9 @@ import java.util.concurrent.ExecutionException;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
     private  DrawerLayout drawer;
 
-    static private OAuth10aService service;
-    static private OAuth1RequestToken requestToken;
-    static private OAuth1AccessToken accessToken;
+    static public OAuth10aService service;
+    static public OAuth1RequestToken requestToken;
+    static public OAuth1AccessToken accessToken;
     static public String verifier;
 
     @Override
@@ -94,11 +94,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         final OAuthRequest request = new OAuthRequest(Verb.GET, "https://api.flickr.com/services/rest/?method=flickr.test.login&format=json&nojsoncallback=1");
                         service.signRequest(accessToken, request);
                         final Response response = service.execute(request);
+
+
                         String body = response.getBody();
+                    }else{
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(authUrl));
+                        startActivity(browserIntent);
                     }
 
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(authUrl));
-                    startActivity(browserIntent);
+
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {

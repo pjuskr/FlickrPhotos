@@ -98,6 +98,9 @@ public class MyImagesFragment extends Fragment {
 
         String qResult = null;
 
+
+
+
         final String qString =
                 FlickrQuery_url
                         + FlickrQuery_per_page
@@ -106,14 +109,14 @@ public class MyImagesFragment extends Fragment {
                         + FlickrQuery_tag + q
                         + FlickrQuery_key + FlickrApiKey;
 
+
+
         final URL[] flickrQueryURL = {null};
 
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try{
-                    flickrQueryURL[0] = new URL(qString);
-
                     HttpURLConnection httpConnection = (HttpURLConnection) flickrQueryURL[0].openConnection();
                     httpConnection.setDoInput(true);
                     httpConnection.connect();

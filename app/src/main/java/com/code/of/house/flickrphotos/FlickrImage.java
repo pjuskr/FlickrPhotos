@@ -2,14 +2,22 @@ package com.code.of.house.flickrphotos;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.code.of.house.flickrphotos.Activities.MainActivity;
+import com.github.scribejava.core.model.OAuthRequest;
+import com.github.scribejava.core.model.Response;
+import com.github.scribejava.core.model.Verb;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.concurrent.ExecutionException;
 
-public class FlickrImage {
+import static com.code.of.house.flickrphotos.Activities.MainActivity.accessToken;
+
+public class FlickrImage implements Parcelable{
+
     private String Id;
     private String Owner;
     private String Secret;
@@ -34,6 +42,17 @@ public class FlickrImage {
         this.FlickrBitmapM = fetchBitmap(MEDIUM);
     }
 
+    public FlickrImage(Parcel in){
+        this.Id = in.readString();
+        this.Owner = in.readString();
+        this.Secret = in.readString();
+        this.Server = in.readString();
+        this.Farm = in.readString();
+        this.Title = in.readString();
+
+        this.FlickrBitmapM = fetchBitmap(MEDIUM);
+    }
+
     public Bitmap getBitmap(){
         return this.FlickrBitmapM;
     }
@@ -42,7 +61,7 @@ public class FlickrImage {
         if(FlickrBitmapB != null)
             return FlickrBitmapB;
         else
-            return fetchBitmap(BIG);
+            return FlickrBitmapB = fetchBitmap(BIG);
     }
 
     private Bitmap fetchBitmap(String size){
@@ -54,13 +73,11 @@ public class FlickrImage {
                         + Server + "/" + Id + "_" + Secret + size + ".jpg";
 
         try {
-            URL FlickrPhotoUrl = new URL(FlickrPhotoPath);
+            final OAuthRequest request = new OAuthRequest(Verb.GET, FlickrPhotoPath);
+            MainActivity.service.signRequest(accessToken, request);
+            final Response response = MainActivity.service.execute(request);
 
-            HttpURLConnection httpConnection = (HttpURLConnection) FlickrPhotoUrl.openConnection();
-            httpConnection.setDoInput(true);
-            httpConnection.connect();
-            InputStream inputStream = httpConnection.getInputStream();
-            bm = BitmapFactory.decodeStream(inputStream);
+            bm = BitmapFactory.decodeStream(response.getStream());
 
         } catch (MalformedURLException e) {
             // TODO Auto-generated catch block
@@ -68,9 +85,36 @@ public class FlickrImage {
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
         }
-
         return bm;
-
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+
+        parcel.writeString(this.Id);
+        parcel.writeString(this.Owner);
+        parcel.writeString(this.Secret);
+        parcel.writeString(this.Server);
+        parcel.writeString(this.Farm);
+        parcel.writeString(this.Title);
+    }
+
+    public static final Parcelable.Creator<FlickrImage>CREATOR = new Parcelable.Creator<FlickrImage>(){
+        public FlickrImage createFromParcel(Parcel in) {
+            return new FlickrImage(in);
+    }
+        public FlickrImage[] newArray(int size) {
+            return new FlickrImage[size];
+        }
+    };
 }
