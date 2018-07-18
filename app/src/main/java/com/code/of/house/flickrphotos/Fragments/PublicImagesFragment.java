@@ -37,9 +37,10 @@ public class PublicImagesFragment extends Fragment {
 
     public static final String API_KEY = "1566308a6e268a2e969dc8f09dbd11c5";
     private static final String SECRET = "f6b3331eeab4a159";
-    private StaggeredGridLayoutManager _sGridLayoutManager;
+    //private StaggeredGridLayoutManager _sGridLayoutManager;
     List<FlickrImage> fList = new ArrayList<>();
     MosaicAapter mAdapter;
+
     /*
      * FlickrQuery = FlickrQuery_url
      * + FlickrQuery_per_page
@@ -62,8 +63,6 @@ public class PublicImagesFragment extends Fragment {
 
     EditText searchText;
     Button searchButton;
-
-    Bitmap bmFlickr;
     FlickrImage[] myFlickrImage;
 
     @Nullable
@@ -77,7 +76,7 @@ public class PublicImagesFragment extends Fragment {
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.public_recyclerview);
         recyclerView.setHasFixedSize(true);
 
-        _sGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        StaggeredGridLayoutManager _sGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(_sGridLayoutManager);
 
         mAdapter = new MosaicAapter(getContext(), fList);
@@ -105,6 +104,7 @@ public class PublicImagesFragment extends Fragment {
             // TODO Auto-generated method stub
             String searchQ = searchText.getText().toString().replace(' ', '_');
             String searchResult = QueryFlickr(searchQ);
+            fList.clear();
         }};
 
     private String QueryFlickr(String q){
@@ -139,6 +139,7 @@ public class PublicImagesFragment extends Fragment {
                     while ((inputline = bufferedReader.readLine()) != null){
                         sb.append(inputline);
                     }
+                    bufferedInputStream.close();
 
                     final FlickrImage myFlickrImage[] = ParseJSON(sb.toString());
 
@@ -174,8 +175,6 @@ public class PublicImagesFragment extends Fragment {
 
         FlickrImage[] flickrImage = null;
 
-        bmFlickr = null;
-
         String flickrId;
         String flickrOwner;
         String flickrSecret;
@@ -188,10 +187,6 @@ public class PublicImagesFragment extends Fragment {
             JSONObject JsonObject = new JSONObject(json);
             JSONObject Json_photos = JsonObject.getJSONObject("photos");
             JSONArray JsonArray_photo = Json_photos.getJSONArray("photo");
-
-            //We have only one photo in this exercise
-            //JSONObject FlickrPhoto = JsonArray_photo.getJSONObject(0);
-
 
             flickrImage = new FlickrImage[JsonArray_photo.length()];
             for (int i = 0; i < JsonArray_photo.length(); i++){

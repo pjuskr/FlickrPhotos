@@ -21,7 +21,7 @@ public class SampleViewHolders extends RecyclerView.ViewHolder implements
     public void onClick(View view)
     {
         Toast.makeText(view.getContext(),
-                "Clicked Position = " + getPosition(), Toast.LENGTH_SHORT)
+                "Clicked Position = " + getAdapterPosition(), Toast.LENGTH_SHORT)
                 .show();
     }
 }
