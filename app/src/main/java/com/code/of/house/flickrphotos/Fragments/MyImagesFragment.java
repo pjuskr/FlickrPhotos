@@ -1,7 +1,6 @@
 package com.code.of.house.flickrphotos.Fragments;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,20 +16,15 @@ import android.widget.TextView;
 import com.code.of.house.flickrphotos.FlickrImage;
 import com.code.of.house.flickrphotos.R;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -104,7 +98,7 @@ public class MyImagesFragment extends Fragment {
 
         String qResult = null;
 
-        String qString =
+        final String qString =
                 FlickrQuery_url
                         + FlickrQuery_per_page
                         + FlickrQuery_nojsoncallback
@@ -112,55 +106,49 @@ public class MyImagesFragment extends Fragment {
                         + FlickrQuery_tag + q
                         + FlickrQuery_key + FlickrApiKey;
 
-        final HttpClient httpClient = new DefaultHttpClient();
-        final HttpGet httpGet = new HttpGet(qString);
+        final URL[] flickrQueryURL = {null};
 
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    HttpEntity httpEntity = httpClient.execute(httpGet).getEntity();
+                try{
+                    flickrQueryURL[0] = new URL(qString);
 
-                    if (httpEntity != null){
-                        InputStream inputStream = httpEntity.getContent();
-                        Reader in = new InputStreamReader(inputStream);
-                        BufferedReader bufferedreader = new BufferedReader(in);
-                        StringBuilder stringBuilder = new StringBuilder();
+                    HttpURLConnection httpConnection = (HttpURLConnection) flickrQueryURL[0].openConnection();
+                    httpConnection.setDoInput(true);
+                    httpConnection.connect();
+                    InputStream inputStream = httpConnection.getInputStream();
+                    BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(bufferedInputStream));
+                    String inputline = "";
+                    StringBuilder sb = new StringBuilder();
 
-                        String stringReadLine = null;
-
-                        while ((stringReadLine = bufferedreader.readLine()) != null) {
-                            stringBuilder.append(stringReadLine + "\n");
-                        }
-
-                        final String qResult = stringBuilder.toString();
-                        FlickrImage myFlickrImage = ParseJSON(qResult);
-                        final Bitmap myFlickrImageBM = myFlickrImage.getBitmap();
-
-
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                if(myFlickrImageBM != null){
-                                    imageFlickrPhoto.setImageBitmap(myFlickrImageBM);
-                                }
-                            }
-                        });
+                    while ((inputline = bufferedReader.readLine()) != null){
+                        sb.append(inputline);
                     }
 
-                } catch (ClientProtocolException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    FlickrImage myFlickrImage = ParseJSON(sb.toString());
+                    final Bitmap myFlickrImageBM = myFlickrImage.getBitmap();
+
+
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            if(myFlickrImageBM != null){
+                                imageFlickrPhoto.setImageBitmap(myFlickrImageBM);
+                            }
+                        }
+                    });
+
+                }catch (MalformedURLException e){
+
+                }catch (IOException e){
+
                 }
             }
         });
-
         thread.start();
-
 
         return qResult;
     }
@@ -207,37 +195,5 @@ public class MyImagesFragment extends Fragment {
 
         return flickrImage;
 
-    }
-
-    private Bitmap LoadPhotoFromFlickr(
-            String id, String owner, String secret,
-            String server, String farm, String title){
-        Bitmap bm= null;
-
-        String FlickrPhotoPath =
-                "http://farm" + farm + ".static.flickr.com/"
-                        + server + "/" + id + "_" + secret + "_m.jpg";
-
-        URL FlickrPhotoUrl = null;
-
-        try {
-            FlickrPhotoUrl = new URL(FlickrPhotoPath);
-
-            HttpURLConnection httpConnection
-                    = (HttpURLConnection) FlickrPhotoUrl.openConnection();
-            httpConnection.setDoInput(true);
-            httpConnection.connect();
-            InputStream inputStream = httpConnection.getInputStream();
-            bm = BitmapFactory.decodeStream(inputStream);
-
-        } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        return bm;
     }
 }
