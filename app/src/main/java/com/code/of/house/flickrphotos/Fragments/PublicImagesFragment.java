@@ -16,9 +16,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.code.of.house.flickrphotos.FlickrAPiManager;
+import com.code.of.house.flickrphotos.Model.FlickrAPiManager;
 import com.code.of.house.flickrphotos.Model.FlickrImage;
-import com.code.of.house.flickrphotos.MosaicAapter;
+import com.code.of.house.flickrphotos.Adapters.MosaicAapter;
 import com.code.of.house.flickrphotos.R;
 
 import org.json.JSONArray;

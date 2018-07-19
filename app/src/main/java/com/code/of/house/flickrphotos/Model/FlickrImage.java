@@ -4,8 +4,6 @@ import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.code.of.house.flickrphotos.FlickrAPiManager;
-
 public class FlickrImage implements Parcelable{ //Implemented Parcelable to allow an FlickrImage to be send with an intent
 
     private String Id;

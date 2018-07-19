@@ -20,7 +20,6 @@
         completions."
     </string>
 
-    <string name="title_activity_fullsceen_image">FullsceenImageActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="title_activity_fullscreen_image">FullscreenImageActivity</string>
+    <string name="title_activity_maps">Map</string>
 </resources>

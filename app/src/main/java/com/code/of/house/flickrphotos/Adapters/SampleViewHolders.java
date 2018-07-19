@@ -1,4 +1,4 @@
-package com.code.of.house.flickrphotos;
+package com.code.of.house.flickrphotos.Adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -6,8 +6,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.code.of.house.flickrphotos.Activities.FullsceenImageActivity;
+import com.code.of.house.flickrphotos.Activities.FullscreenImageActivity;
 import com.code.of.house.flickrphotos.Model.FlickrImage;
+import com.code.of.house.flickrphotos.R;
 
 public class SampleViewHolders extends RecyclerView.ViewHolder implements
         View.OnClickListener
@@ -27,7 +28,7 @@ public class SampleViewHolders extends RecyclerView.ViewHolder implements
     @Override
     public void onClick(View view)
     {
-        Intent intent = new Intent(context , FullsceenImageActivity.class);
+        Intent intent = new Intent(context , FullscreenImageActivity.class);
         intent.putExtra("object", flickrImage);
         context.startActivity(intent);
     }

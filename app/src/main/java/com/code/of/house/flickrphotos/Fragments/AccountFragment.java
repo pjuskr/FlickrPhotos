@@ -11,7 +11,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.code.of.house.flickrphotos.FlickrAPiManager;
+import com.code.of.house.flickrphotos.Model.FlickrAPiManager;
 import com.code.of.house.flickrphotos.R;
 
 public class AccountFragment extends Fragment {

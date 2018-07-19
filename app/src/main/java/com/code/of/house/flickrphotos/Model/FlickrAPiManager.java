@@ -1,4 +1,4 @@
-package com.code.of.house.flickrphotos;
+package com.code.of.house.flickrphotos.Model;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 
-import com.code.of.house.flickrphotos.Model.FlickrUser;
 import com.github.scribejava.apis.FlickrApi;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuth1AccessToken;
@@ -24,33 +23,38 @@ import java.io.InputStream;
 import java.util.concurrent.ExecutionException;
 
 public class FlickrAPiManager {
-    public static final String Query_url = "https://api.flickr.com/services/rest/";
 
+    //A list of standard query elements to make it easier to build a query
+    //Standard url
+    public static final String Query_url = "https://api.flickr.com/services/rest/";
+    //Mothods
     public static final String Query_Method_getInfo = "?method=flickr.people.getInfo";
     public static final String Query_Method_getPhotos = "?method=flickr.people.getPhotos";
     public static final String Query_Method_search = "?method=flickr.photos.search";
     public static final String Query_Method_testlogin = "?method=flickr.test.login";
-
+    //Return formats
     public static final String Query_noJsonCallback = "&nojsoncallback=1";
     public static final String Query_Format_json = "&format=json";
-
+    //Optional modifiers
     public static final String Query_user_id = "&user_id=";
     public static final String Query_tag = "&tags=";
-
+    //Page control
     public static final String Query_per_page = "&per_page=";
     public static final String Query_page = "&page=";
 
+    //The App specific keys
     private static final String consumerKey = "1566308a6e268a2e969dc8f09dbd11c5"; //api key
     private static final String consumerSecret = "f6b3331eeab4a159"; //api secret
 
-    static public FlickrUser flickrUser = new FlickrUser();
-
+    //Handlers for getting authorization to FlickrAPI and for making requests
     static private OAuth10aService service;
     static private OAuth1RequestToken requestToken;
     static private OAuth1AccessToken accessToken;
-
     static public String verifier;
 
+    static public FlickrUser flickrUser = new FlickrUser(); //An object storing the user information
+
+    //Start point for login requests
     public static void login(Activity activity) {
 
         getService();
@@ -63,6 +67,7 @@ public class FlickrAPiManager {
         }
     }
 
+    //Gets the needed data for the service
     private static void getService(){
         try {
             if (service == null) {
@@ -77,9 +82,9 @@ public class FlickrAPiManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
+    //Gets the access token
     private static void getAccessToken(){
         try {
             accessToken = service.getAccessToken(requestToken, verifier);
@@ -92,21 +97,21 @@ public class FlickrAPiManager {
         }
     }
 
+    //Gets the verifier
     private static void getVerifier(Activity activity){
         String authUrl = service.getAuthorizationUrl(requestToken);
         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(authUrl));
         activity.startActivity(browserIntent);
     }
 
+    //Start point for getting user information
     private static void getUserInfo(){
-
         getBasicUserInfo();
         getAdditionalUserInfo();
     }
 
     //This method gets the user_id and username for the user
     private static void getBasicUserInfo(){
-
         try{
             String queryLoginTest = Query_url
                     + Query_Method_testlogin
@@ -181,6 +186,7 @@ public class FlickrAPiManager {
             return null;
     }
 
+    //Method for calling the api with a query that returns it all as a Bitmap
     public static Bitmap QueryGetBitmap(String Query){
 
         Response response = QueryGetResponce(Query);
@@ -188,9 +194,11 @@ public class FlickrAPiManager {
             return BitmapFactory.decodeStream(response.getStream());
         else
             return null;
-
     }
+
+    //Method for calling the api with a query that returns it all as a Responce
     private static Response QueryGetResponce(String Query){
+
         try {
             final OAuthRequest request = new OAuthRequest(Verb.GET, Query);
             service.signRequest(accessToken, request);
@@ -204,9 +212,5 @@ public class FlickrAPiManager {
         }
         return null;
     }
-
-
-
-
 
 }

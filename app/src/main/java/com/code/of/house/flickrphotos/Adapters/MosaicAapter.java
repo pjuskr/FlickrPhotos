@@ -1,4 +1,4 @@
-package com.code.of.house.flickrphotos;
+package com.code.of.house.flickrphotos.Adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.code.of.house.flickrphotos.Model.FlickrImage;
+import com.code.of.house.flickrphotos.R;
 
 import java.util.List;
 

@@ -16,11 +16,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
-import com.code.of.house.flickrphotos.FlickrAPiManager;
 import com.code.of.house.flickrphotos.Fragments.AccountFragment;
-import com.code.of.house.flickrphotos.Fragments.MapFragment;
 import com.code.of.house.flickrphotos.Fragments.MyImagesFragment;
 import com.code.of.house.flickrphotos.Fragments.PublicImagesFragment;
+import com.code.of.house.flickrphotos.Model.FlickrAPiManager;
 import com.code.of.house.flickrphotos.R;
 
 
@@ -33,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //prepares the views
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.syncState();
 
 
+        //Gets the verifier from the intent returned by the browser
         FlickrAPiManager.verifier = "";
         Intent intent = getIntent();
         Uri data = intent.getData();
@@ -52,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             FlickrAPiManager.verifier = data.toString().substring(data.toString().indexOf("oauth_verifier=") + 15);
         }
 
+        //Use the activity to allow calling the browser
         final Activity f = this;
 
         Thread thread = new Thread(new Runnable() {
@@ -60,6 +62,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 FlickrAPiManager.login(f);}
         });
         thread.start();
+
+        //opens the PublicImagesFragment such that the user is not welcomed with a blank screen from start
+        if(!FlickrAPiManager.verifier.isEmpty())
+            getSupportFragmentManager().beginTransaction().add(R.id.fragment_container,new PublicImagesFragment()).commit();
     }
 
     public void openFragment(String text) {
@@ -70,7 +76,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
         String fragnmentName = "";
         Fragment fragment = null;
+        Boolean isMaps = false;
 
+        //Finds out with fragment to open
         switch (menuItem.getItemId()) {
             case R.id.nav_public_images:
                 fragment = PublicImagesFragment.newInstance();
@@ -79,19 +87,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 fragment = MyImagesFragment.newInstance();
                 break;
             case R.id.nav_map:
-                fragment = MapFragment.newInstance();
+                //fragment = MapFragment.newInstance();
+                isMaps = true;
                 break;
             case R.id.nav_profile:
                 fragment = AccountFragment.newInstance();
                 break;
         }
 
-        if (fragment != null) {
+        //Opens the selected fragment
+        if (fragment != null & !isMaps) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction.setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_right, R.anim.enter_from_right, R.anim.exit_to_right);
             transaction.addToBackStack(null);
             transaction.add(R.id.fragment_container, fragment, fragnmentName).commit();
+        }
+        if(isMaps){
+            Intent intent = new Intent(this , MapsActivity.class);
+            this.startActivity(intent);
         }
 
 
