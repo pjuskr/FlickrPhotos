@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/background_light"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:clickable="true">
 
                 <ImageView
                     android:id="@+id/account_icon"
@@ -11,7 +12,8 @@
                     android:layout_height="wrap_content"
                     android:contentDescription="profilbillede"
                     android:layout_above="@+id/account_name"
-                    android:layout_centerHorizontal="true"/>
+                    android:layout_centerHorizontal="true"
+                    android:src="@drawable/default_user_icon"/>
 
                 <TextView
                     android:id="@+id/account_name"

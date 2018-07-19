@@ -14,4 +14,8 @@ public class FlickrUser {
         this.nsid = nsid;
         this.user_icon = user_icon;
     }
+
+    public FlickrUser(){
+
+    }
 }

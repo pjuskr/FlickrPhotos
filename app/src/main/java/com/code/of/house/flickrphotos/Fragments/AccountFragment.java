@@ -11,7 +11,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.code.of.house.flickrphotos.Activities.MainActivity;
+import com.code.of.house.flickrphotos.FlickrAPiManager;
 import com.code.of.house.flickrphotos.R;
 
 public class AccountFragment extends Fragment {
@@ -29,8 +29,8 @@ public class AccountFragment extends Fragment {
         username = view.findViewById(R.id.account_name);
         button = view.findViewById(R.id.account_logout);
 
-        profilePicture.setImageBitmap(MainActivity.flickrUser.user_icon);
-        username.setText(MainActivity.flickrUser.username);
+        profilePicture.setImageBitmap(FlickrAPiManager.flickrUser.user_icon);
+        username.setText(FlickrAPiManager.flickrUser.username);
 
         return view;
     }

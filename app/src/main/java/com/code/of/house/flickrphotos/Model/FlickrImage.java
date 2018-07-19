@@ -1,22 +1,12 @@
 package com.code.of.house.flickrphotos.Model;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.code.of.house.flickrphotos.Activities.MainActivity;
-import com.github.scribejava.core.model.OAuthRequest;
-import com.github.scribejava.core.model.Response;
-import com.github.scribejava.core.model.Verb;
+import com.code.of.house.flickrphotos.FlickrAPiManager;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.concurrent.ExecutionException;
-
-import static com.code.of.house.flickrphotos.Activities.MainActivity.accessToken;
-
-public class FlickrImage implements Parcelable{
+public class FlickrImage implements Parcelable{ //Implemented Parcelable to allow an FlickrImage to be send with an intent
 
     private String Id;
     private String Owner;
@@ -66,31 +56,11 @@ public class FlickrImage implements Parcelable{
 
     private Bitmap fetchBitmap(String size){
 
-        Bitmap bm= null;
-
         String FlickrPhotoPath =
                 "http://farm" + Farm + ".static.flickr.com/"
                         + Server + "/" + Id + "_" + Secret + size + ".jpg";
 
-        try {
-            final OAuthRequest request = new OAuthRequest(Verb.GET, FlickrPhotoPath);
-            MainActivity.service.signRequest(accessToken, request);
-            final Response response = MainActivity.service.execute(request);
-
-            bm = BitmapFactory.decodeStream(response.getStream());
-
-        } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        return bm;
+        return FlickrAPiManager.QueryGetBitmap(FlickrPhotoPath);
     }
 
     @Override
