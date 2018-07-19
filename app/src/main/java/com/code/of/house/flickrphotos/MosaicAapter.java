@@ -6,6 +6,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.code.of.house.flickrphotos.Model.FlickrImage;
+
 import java.util.List;
 
 public class MosaicAapter extends RecyclerView.Adapter<SampleViewHolders> {

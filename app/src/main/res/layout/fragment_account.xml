@@ -1,12 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="@android:color/background_light">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/background_light"
+    android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="account fragment"
-        android:textSize="30sp"
-        android:layout_centerInParent="true"/>
+                <ImageView
+                    android:id="@+id/account_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="profilbillede"
+                    android:layout_above="@+id/account_name"
+                    android:layout_centerHorizontal="true"/>
+
+                <TextView
+                    android:id="@+id/account_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="30sp"
+                    android:layout_centerInParent="true"/>
+
+                <Button
+                    android:id="@+id/account_logout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Log ud"
+                    android:layout_below="@+id/account_name"
+                    android:layout_centerHorizontal="true"/>
+
 </RelativeLayout>

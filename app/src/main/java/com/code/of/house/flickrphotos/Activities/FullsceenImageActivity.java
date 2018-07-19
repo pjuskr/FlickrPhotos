@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 
-import com.code.of.house.flickrphotos.FlickrImage;
+import com.code.of.house.flickrphotos.Model.FlickrImage;
 import com.code.of.house.flickrphotos.R;
 
 /**

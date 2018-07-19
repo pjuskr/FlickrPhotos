@@ -1,4 +1,4 @@
-package com.code.of.house.flickrphotos;
+package com.code.of.house.flickrphotos.Model;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;

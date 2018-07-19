@@ -7,15 +7,32 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.code.of.house.flickrphotos.Activities.MainActivity;
 import com.code.of.house.flickrphotos.R;
 
 public class AccountFragment extends Fragment {
 
+    ImageView profilePicture;
+    TextView username;
+    Button button;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_account, container, false);
+        View view = inflater.inflate(R.layout.fragment_account, container, false);
+
+        profilePicture = view.findViewById(R.id.account_icon);
+        username = view.findViewById(R.id.account_name);
+        button = view.findViewById(R.id.account_logout);
+
+        profilePicture.setImageBitmap(MainActivity.flickrUser.user_icon);
+        username.setText(MainActivity.flickrUser.username);
+
+        return view;
     }
 
     @Override

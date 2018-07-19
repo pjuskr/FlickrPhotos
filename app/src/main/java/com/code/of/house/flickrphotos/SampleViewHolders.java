@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.code.of.house.flickrphotos.Activities.FullsceenImageActivity;
+import com.code.of.house.flickrphotos.Model.FlickrImage;
 
 public class SampleViewHolders extends RecyclerView.ViewHolder implements
         View.OnClickListener

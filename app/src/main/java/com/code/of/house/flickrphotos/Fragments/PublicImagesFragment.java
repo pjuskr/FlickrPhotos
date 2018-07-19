@@ -1,8 +1,9 @@
 package com.code.of.house.flickrphotos.Fragments;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,9 +14,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.code.of.house.flickrphotos.Activities.MainActivity;
-import com.code.of.house.flickrphotos.FlickrImage;
+import com.code.of.house.flickrphotos.Model.FlickrImage;
 import com.code.of.house.flickrphotos.MosaicAapter;
 import com.code.of.house.flickrphotos.R;
 import com.github.scribejava.core.model.OAuthRequest;
@@ -27,10 +29,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -39,134 +38,152 @@ import static com.code.of.house.flickrphotos.Activities.MainActivity.accessToken
 
 public class PublicImagesFragment extends Fragment {
 
+    //Variables for more easily building a query to FlickrAPI
     public static final String API_KEY = "1566308a6e268a2e969dc8f09dbd11c5";
-    private static final String SECRET = "f6b3331eeab4a159";
-    //private StaggeredGridLayoutManager _sGridLayoutManager;
-    List<FlickrImage> fList = new ArrayList<>();
-    MosaicAapter mAdapter;
+    public static final String SECRET = "f6b3331eeab4a159";
+    public static final String FlickrQuery_url = "https://api.flickr.com/services/rest/?method=flickr.photos.search";
+    public static final String FlickrQuery_per_page = "&per_page=20";
+    public static final String FlickrQuery_nojsoncallback = "&nojsoncallback=1";
+    public static final String FlickrQuery_format = "&format=json";
+    public static final String FlickrQuery_tag = "&tags=";
+    public static final String FlickrQuery_page = "&page=";
 
-    /*
-     * FlickrQuery = FlickrQuery_url
-     * + FlickrQuery_per_page
-     * + FlickrQuery_nojsoncallback
-     * + FlickrQuery_format
-     * + FlickrQuery_tag + q
-     * + FlickrQuery_key + FlickrApiKey
-     */
+    //Variables for keeping track on what images to load
+    int currentPage = 0;
+    Boolean hasMoreResults = true;
 
-    String FlickrQuery_url = "https://api.flickr.com/services/rest/?method=flickr.photos.search";
-    String FlickrQuery_per_page = "&per_page=20";
-    String FlickrQuery_nojsoncallback = "&nojsoncallback=1";
-    String FlickrQuery_format = "&format=json";
-    String FlickrQuery_tag = "&tags=";
-    String FlickrQuery_key = "&api_key=";
+    //List containing all the loaded images
+    List<FlickrImage> flickrImageList = new ArrayList<>();
 
-    // Apply your Flickr API:
-// www.flickr.com/services/apps/create/apply/?
-    String FlickrApiKey = API_KEY;
+    ProgressDialog progressDialog;
+    LoadImagesThread loadImagesThread;
 
+    MosaicAapter mosaicAdapter; // The addapter for the mosaic-grid. Used for updating the grid on new data loaded.
+
+    //Variables for the views
     EditText searchText;
     Button searchButton;
-    FlickrImage[] myFlickrImage;
+    RecyclerView recyclerView;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_public_images, container, false);
 
+        //Finds the views
         searchText = view.findViewById(R.id.edit_text);
         searchButton = view.findViewById(R.id.button);
+        recyclerView = view.findViewById(R.id.public_recyclerview);
 
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.public_recyclerview);
+        //Prepare the recycler view
         recyclerView.setHasFixedSize(true);
-
         StaggeredGridLayoutManager _sGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(_sGridLayoutManager);
 
-        mAdapter = new MosaicAapter(getContext(), fList);
-        recyclerView.setAdapter(mAdapter);
+        //Prepares the adapter for the recycler view
+        mosaicAdapter = new MosaicAapter(getContext(), flickrImageList);
+        recyclerView.setAdapter(mosaicAdapter);
+
+        //Sets the needed listeners
         searchButton.setOnClickListener(searchButtonOnClickListener);
+        recyclerView.addOnScrollListener(recyclerViewOnClickListener);
 
         return view;
     }
+
+    private Button.OnClickListener searchButtonOnClickListener
+            = new Button.OnClickListener() {
+
+        public void onClick(View view) {
+            //Opens a progress dialog box to inform the user that images is being loaded in
+            progressDialog = ProgressDialog.show(getActivity(),
+                    "", "Indlæser billeder!");
+
+            //resets the values to start new search
+            flickrImageList.clear();
+            currentPage = 1;
+            hasMoreResults = true;
+
+            //Call the data on a background thread
+            loadImagesThread = new LoadImagesThread();
+            loadImagesThread.setRunning(true);
+            loadImagesThread.start();
+        }
+    };
+
+    private RecyclerView.OnScrollListener recyclerViewOnClickListener = new RecyclerView.OnScrollListener() {
+        @Override
+        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+            super.onScrollStateChanged(recyclerView, newState);
+
+            if(recyclerView.getLayoutManager() != null){
+                //Finds values about the users location of the recyclerView
+                int visibleItemCount = recyclerView.getLayoutManager().getChildCount();
+                int totalItemCount = recyclerView.getLayoutManager().getItemCount();
+                int pastVisibleItems = ((StaggeredGridLayoutManager) recyclerView.getLayoutManager()).findLastVisibleItemPositions(null)[0];
+
+                //A check to see if the user is near the end of the list and that new images is not being loading in already
+                if ((pastVisibleItems + visibleItemCount + 10 >= totalItemCount)& !loadImagesThread.running) {
+                    if (hasMoreResults) {
+                        //Increment page for the search and starts loading more pictures
+                        currentPage++;
+                        loadImagesThread = new LoadImagesThread();
+                        loadImagesThread.setRunning(true);
+                        loadImagesThread.start();
+                    } else {
+                        Toast.makeText(getActivity(), "No more pictures to load", Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+        }
+    };
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
-    public static PublicImagesFragment newInstance(){
-        PublicImagesFragment fragment = new PublicImagesFragment();
-        return fragment;
+    public static PublicImagesFragment newInstance() {
+        return new PublicImagesFragment();
     }
 
-    private Button.OnClickListener searchButtonOnClickListener
-            = new Button.OnClickListener(){
 
-        public void onClick(View arg0) {
-            // TODO Auto-generated method stub
-            String searchQ = searchText.getText().toString().replace(' ', '_');
-            QueryFlickr(searchQ);
-            fList.clear();
-        }};
-
-    private void QueryFlickr(String q){
+    private String QueryFlickr(String tag) {
 
         final String qString =
                 FlickrQuery_url
                         + FlickrQuery_per_page
                         + FlickrQuery_nojsoncallback
                         + FlickrQuery_format
-                        + FlickrQuery_tag + q;
+                        + FlickrQuery_tag + tag
+                        + FlickrQuery_page + currentPage;
 
-        final URL[] flickrQueryURL = {null};
+        String result = null;
 
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try{
+        try {
+            final OAuthRequest request = new OAuthRequest(Verb.GET, qString);
+            MainActivity.service.signRequest(accessToken, request);
+            final Response response = MainActivity.service.execute(request);
 
-                    final OAuthRequest request = new OAuthRequest(Verb.GET, qString);
-                    MainActivity.service.signRequest(accessToken, request);
-                    final Response response = MainActivity.service.execute(request);
+            result = response.getBody();
 
-                    String body = response.getBody();
-
-                    final FlickrImage myFlickrImage[] = ParseJSON(body);
-
-
-                    for (final FlickrImage f: myFlickrImage) {
-                        final Bitmap myFlickrImageBM = f.getBitmap();
-
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                if(myFlickrImageBM != null){
-                                    fList.add(f);
-                                    mAdapter.notifyDataSetChanged();
-                                }
-                            }
-                        });
-                    }
-
-                }catch (MalformedURLException e){
-
-                }catch (IOException e){
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        thread.start();
+            //TODO make code for Exceptions (All places)
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
-    private FlickrImage[] ParseJSON(String json){
+    private List<FlickrImage> ParseJSON(String json) {
 
-        FlickrImage[] flickrImage = null;
+        List<FlickrImage> flickrImage = new ArrayList<>();
 
         String flickrId;
         String flickrOwner;
@@ -181,8 +198,7 @@ public class PublicImagesFragment extends Fragment {
             JSONObject Json_photos = JsonObject.getJSONObject("photos");
             JSONArray JsonArray_photo = Json_photos.getJSONArray("photo");
 
-            flickrImage = new FlickrImage[JsonArray_photo.length()];
-            for (int i = 0; i < JsonArray_photo.length(); i++){
+            for (int i = 0; i < JsonArray_photo.length(); i++) {
                 JSONObject FlickrPhoto = JsonArray_photo.getJSONObject(i);
                 flickrId = FlickrPhoto.getString("id");
                 flickrOwner = FlickrPhoto.getString("owner");
@@ -190,8 +206,8 @@ public class PublicImagesFragment extends Fragment {
                 flickrServer = FlickrPhoto.getString("server");
                 flickrFarm = FlickrPhoto.getString("farm");
                 flickrTitle = FlickrPhoto.getString("title");
-                flickrImage[i] = new FlickrImage(flickrId, flickrOwner, flickrSecret,
-                        flickrServer, flickrFarm, flickrTitle);
+                flickrImage.add(new FlickrImage(flickrId, flickrOwner, flickrSecret,
+                        flickrServer, flickrFarm, flickrTitle));
             }
 
         } catch (JSONException e) {
@@ -204,35 +220,45 @@ public class PublicImagesFragment extends Fragment {
         return flickrImage;
     }
 
-    private Bitmap LoadPhotoFromFlickr(
-            String id, String owner, String secret,
-            String server, String farm, String title){
-        Bitmap bm= null;
+    public class LoadImagesThread extends Thread {
+        volatile boolean running = false;
 
-        String FlickrPhotoPath =
-                "http://farm" + farm + ".static.flickr.com/"
-                        + server + "/" + id + "_" + secret + "_m.jpg";
-
-        URL FlickrPhotoUrl = null;
-
-        try {
-            FlickrPhotoUrl = new URL(FlickrPhotoPath);
-
-            HttpURLConnection httpConnection
-                    = (HttpURLConnection) FlickrPhotoUrl.openConnection();
-            httpConnection.setDoInput(true);
-            httpConnection.connect();
-            InputStream inputStream = httpConnection.getInputStream();
-            bm = BitmapFactory.decodeStream(inputStream);
-
-        } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        void setRunning(boolean b) {
+            running = b;
         }
 
-        return bm;
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            String searchQ = searchText.getText().toString().replace(' ', '_');
+            String searchResult = QueryFlickr(searchQ);
+            hasMoreResults = false;
+            List<FlickrImage> myFlickrImage = ParseJSON(searchResult);
+
+            flickrImageList.addAll(myFlickrImage);
+
+            if(!myFlickrImage.isEmpty())
+                hasMoreResults = true;
+
+            handler.sendMessage(handler.obtainMessage());
+            setRunning(false);
+        }
+
+        Handler handler = new Handler() {
+
+            @Override
+            public void handleMessage(Message msg) {
+                // TODO Auto-generated method stub
+
+                progressDialog.dismiss();
+                mosaicAdapter.notifyDataSetChanged();
+                if(flickrImageList.isEmpty())
+                {
+                    Toast.makeText(getActivity(), "Der var ingen resultater", Toast.LENGTH_LONG).show();
+                }
+            }
+
+        };
     }
+
 }
