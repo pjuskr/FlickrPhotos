@@ -33,7 +33,7 @@ public class FullscreenImageActivity extends AppCompatActivity {
                 flickrImage = (FlickrImage) intent.getParcelableExtra("object");
 
                 //Gets a bigget version of the image
-                flickrImage.GetBigBitmap();
+                flickrImage.getBiggetsAvailable();
 
                 runOnUiThread(new Runnable() {
                     @Override

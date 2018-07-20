@@ -29,6 +29,7 @@ public class AccountFragment extends Fragment {
         username = view.findViewById(R.id.account_name);
         button = view.findViewById(R.id.account_logout);
 
+        //Sets the user values for the profile page
         profilePicture.setImageBitmap(FlickrAPiManager.flickrUser.user_icon);
         username.setText(FlickrAPiManager.flickrUser.username);
 

@@ -14,14 +14,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.code.of.house.flickrphotos.Adapters.MosaicAapter;
 import com.code.of.house.flickrphotos.Model.FlickrAPiManager;
 import com.code.of.house.flickrphotos.Model.FlickrImage;
-import com.code.of.house.flickrphotos.Adapters.MosaicAapter;
 import com.code.of.house.flickrphotos.R;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,13 +62,14 @@ public class MyImagesFragment extends Fragment {
         //Sets the needed listeners
         recyclerView.addOnScrollListener(recyclerViewOnClickListener);
 
-        progressDialog = ProgressDialog.show(getActivity(),
-                "", "Indlæser billeder!");
-
         //resets the values to start new search
         flickrImageList.clear();
         currentPage = 1;
         hasMoreResults = true;
+
+        //Starts a progress dialog informing the user that images are being loaded in and starts the background thread
+        progressDialog = ProgressDialog.show(getActivity(),
+                "", "Indlæser billeder!");
 
         loadImagesThread = new LoadImagesThread();
         loadImagesThread.setRunning(true);
@@ -118,6 +115,7 @@ public class MyImagesFragment extends Fragment {
         return new MyImagesFragment();
     }
 
+    //Makes a call to get a set number of images given the search word
     private String QueryFlickr(String user_id) {
 
         final String qString =
@@ -133,35 +131,7 @@ public class MyImagesFragment extends Fragment {
 
     }
 
-    private List<FlickrImage> ParseJSONToFlickrImage(String json) {
-
-        List<FlickrImage> flickrImage = new ArrayList<>();
-
-        try {
-            JSONObject JsonObject = new JSONObject(json);
-            JSONObject Json_photos = JsonObject.getJSONObject("photos");
-            JSONArray JsonArray_photo = Json_photos.getJSONArray("photo");
-
-            for (int i = 0; i < JsonArray_photo.length(); i++) {
-                JSONObject FlickrPhoto = JsonArray_photo.getJSONObject(i);
-                String flickrId = FlickrPhoto.getString("id");
-                String flickrOwner = FlickrPhoto.getString("owner");
-                String flickrSecret = FlickrPhoto.getString("secret");
-                String flickrServer = FlickrPhoto.getString("server");
-                String flickrFarm = FlickrPhoto.getString("farm");
-                String flickrTitle = FlickrPhoto.getString("title");
-
-                flickrImage.add(new FlickrImage(flickrId, flickrOwner, flickrSecret,
-                        flickrServer, flickrFarm, flickrTitle));
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        return flickrImage;
-    }
-
+    //Thread handling loading images in the background
     public class LoadImagesThread extends Thread {
         volatile boolean running = false;
 
@@ -174,7 +144,7 @@ public class MyImagesFragment extends Fragment {
 
             String searchResult = QueryFlickr(FlickrAPiManager.flickrUser.user_id);
             hasMoreResults = false;
-            List<FlickrImage> myFlickrImage = ParseJSONToFlickrImage(searchResult);
+            List<FlickrImage> myFlickrImage = FlickrAPiManager.ParseJSONToFlickrImage(searchResult);
 
             flickrImageList.addAll(myFlickrImage);
 
@@ -185,6 +155,7 @@ public class MyImagesFragment extends Fragment {
             setRunning(false);
         }
 
+        //Handler that informs the view about the result of the thread
         Handler handler = new Handler() {
 
             @Override

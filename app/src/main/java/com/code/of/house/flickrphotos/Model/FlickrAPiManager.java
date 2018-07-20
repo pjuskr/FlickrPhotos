@@ -15,11 +15,14 @@ import com.github.scribejava.core.model.Response;
 import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth10aService;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class FlickrAPiManager {
@@ -32,11 +35,13 @@ public class FlickrAPiManager {
     public static final String Query_Method_getPhotos = "?method=flickr.people.getPhotos";
     public static final String Query_Method_search = "?method=flickr.photos.search";
     public static final String Query_Method_testlogin = "?method=flickr.test.login";
+    public static final String Query_Method_sizes = "?method=flickr.photos.getSizes";
     //Return formats
     public static final String Query_noJsonCallback = "&nojsoncallback=1";
     public static final String Query_Format_json = "&format=json";
     //Optional modifiers
     public static final String Query_user_id = "&user_id=";
+    public static final String Query_photo_id = "&photo_id=";
     public static final String Query_tag = "&tags=";
     //Page control
     public static final String Query_per_page = "&per_page=";
@@ -213,4 +218,46 @@ public class FlickrAPiManager {
         return null;
     }
 
+    //Takes a list of FlickrImages in json format and turns it into a list of FlickrImage Object
+    public static List<FlickrImage> ParseJSONToFlickrImage(String json) {
+
+        List<FlickrImage> flickrImage = new ArrayList<>();
+
+        try {
+            JSONObject JsonObject = new JSONObject(json);
+            JSONObject Json_photos = JsonObject.getJSONObject("photos");
+            JSONArray JsonArray_photo = Json_photos.getJSONArray("photo");
+
+            for (int i = 0; i < JsonArray_photo.length(); i++) {
+                JSONObject FlickrPhoto = JsonArray_photo.getJSONObject(i);
+
+                flickrImage.add(JsonObjectToFlickrImage(FlickrPhoto));
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return flickrImage;
+    }
+
+    //Takes a JsonObject of a FlickrImage and turns it into a FlickrImage object
+    public static FlickrImage JsonObjectToFlickrImage(JSONObject json){
+
+        try {
+            String flickrId = json.getString("id");
+            String flickrOwner = json.getString("owner");
+            String flickrSecret = json.getString("secret");
+            String flickrServer = json.getString("server");
+            String flickrFarm = json.getString("farm");
+            String flickrTitle = json.getString("title");
+
+            return new FlickrImage(flickrId, flickrOwner, flickrSecret,
+                    flickrServer, flickrFarm, flickrTitle);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

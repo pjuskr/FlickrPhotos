@@ -28,6 +28,7 @@ public class SampleViewHolders extends RecyclerView.ViewHolder implements
     @Override
     public void onClick(View view)
     {
+        //Opens a fullscreen activity and send the FlickrImage for to it
         Intent intent = new Intent(context , FullscreenImageActivity.class);
         intent.putExtra("object", flickrImage);
         context.startActivity(intent);

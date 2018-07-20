@@ -16,14 +16,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.code.of.house.flickrphotos.Adapters.MosaicAapter;
 import com.code.of.house.flickrphotos.Model.FlickrAPiManager;
 import com.code.of.house.flickrphotos.Model.FlickrImage;
-import com.code.of.house.flickrphotos.Adapters.MosaicAapter;
 import com.code.of.house.flickrphotos.R;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -132,7 +128,7 @@ public class PublicImagesFragment extends Fragment {
         return new PublicImagesFragment();
     }
 
-
+    //Makes a call to get a set number of images given the search word
     private String QueryFlickr(String tag) {
 
         final String qString =
@@ -147,34 +143,7 @@ public class PublicImagesFragment extends Fragment {
         return FlickrAPiManager.QueryGetString(qString);
     }
 
-    private List<FlickrImage> ParseJSON(String json) {
-
-        List<FlickrImage> flickrImage = new ArrayList<>();
-
-        try {
-            JSONObject JsonObject = new JSONObject(json);
-            JSONObject Json_photos = JsonObject.getJSONObject("photos");
-            JSONArray JsonArray_photo = Json_photos.getJSONArray("photo");
-
-            for (int i = 0; i < JsonArray_photo.length(); i++) {
-                JSONObject FlickrPhoto = JsonArray_photo.getJSONObject(i);
-                String flickrId = FlickrPhoto.getString("id");
-                String flickrOwner = FlickrPhoto.getString("owner");
-                String flickrSecret = FlickrPhoto.getString("secret");
-                String flickrServer = FlickrPhoto.getString("server");
-                String flickrFarm = FlickrPhoto.getString("farm");
-                String flickrTitle = FlickrPhoto.getString("title");
-                flickrImage.add(new FlickrImage(flickrId, flickrOwner, flickrSecret,
-                        flickrServer, flickrFarm, flickrTitle));
-            }
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        return flickrImage;
-    }
-
+    //Thread handling loading images in the background
     public class LoadImagesThread extends Thread {
         volatile boolean running = false;
 
@@ -187,8 +156,8 @@ public class PublicImagesFragment extends Fragment {
 
             String searchQ = searchText.getText().toString().replace(' ', '_');
             String searchResult = QueryFlickr(searchQ);
+            List<FlickrImage> myFlickrImage = FlickrAPiManager.ParseJSONToFlickrImage(searchResult);
             hasMoreResults = false;
-            List<FlickrImage> myFlickrImage = ParseJSON(searchResult);
 
             flickrImageList.addAll(myFlickrImage);
 
@@ -199,6 +168,7 @@ public class PublicImagesFragment extends Fragment {
             setRunning(false);
         }
 
+        //Handler that informs the view about the result of the thread
         Handler handler = new Handler() {
 
             @Override

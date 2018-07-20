@@ -103,6 +103,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             transaction.addToBackStack(null);
             transaction.add(R.id.fragment_container, fragment, fragnmentName).commit();
         }
+        //Todo make it run in a fragment if possible
+        //In the unique case that it is the map i load the activity instead
         if(isMaps){
             Intent intent = new Intent(this , MapsActivity.class);
             this.startActivity(intent);

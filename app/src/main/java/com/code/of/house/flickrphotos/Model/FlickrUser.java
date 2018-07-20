@@ -2,6 +2,7 @@ package com.code.of.house.flickrphotos.Model;
 
 import android.graphics.Bitmap;
 
+//Class holding all the basic data about the user
 public class FlickrUser {
     public String username;
     public String user_id;
